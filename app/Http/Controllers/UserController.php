@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Routing\Controller;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -14,7 +16,7 @@ class UserController extends Controller
         $this->middleware('auth');
         // This simple check ensures only Administrators access these routes.
         $this->middleware(function ($request, $next) {
-            if (auth()->user()->role->name !== 'Administrator') {
+            if (Auth::user()->role->name !== 'Administrator') {
                 return response()->json(['error' => 'Unauthorized'], 403);
             }
             return $next($request);

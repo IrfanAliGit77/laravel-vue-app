@@ -8,6 +8,8 @@ use App\Exports\DynamicExport;
 use App\Imports\DynamicImport;
 use App\Jobs\ProcessExcelExport;
 use App\Jobs\ProcessExcelImport;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controller;
 
 class ExcelController extends Controller
 {
@@ -20,7 +22,7 @@ class ExcelController extends Controller
     {
         $table = $request->table;  // "projects", "tasks", or "comments"
         $fields = explode(',', $request->fields);
-        ProcessExcelExport::dispatch($table, $fields, auth()->user()->id);
+        ProcessExcelExport::dispatch($table, $fields, Auth::user()->id);
         return response()->json(['message' => 'Export process started; you will be notified when finished.']);
     }
 
@@ -34,7 +36,7 @@ class ExcelController extends Controller
 
         $table = $request->table;
         $file = $request->file('file');
-        ProcessExcelImport::dispatch($table, $file->getRealPath(), auth()->user()->id);
+        ProcessExcelImport::dispatch($table, $file->getRealPath(), Auth::user()->id);
         return response()->json(['message' => 'Import process started; you will be notified upon completion.']);
     }
 }
