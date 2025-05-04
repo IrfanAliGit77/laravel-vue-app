@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Traits\UsesUuid;
+use Illuminate\Support\Str;
 
 class User extends Authenticatable
 {
@@ -35,6 +36,11 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    // Agar Laravel tahu bahwa primary key berupa string (UUID)
+public $incrementing = false;
+protected $keyType = 'string';
+
+
     /**
      * Get the attributes that should be cast.
      *
@@ -52,4 +58,15 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
+
+    protected static function boot()
+{
+    parent::boot();
+    static::creating(function ($model) {
+        if (empty($model->{$model->getKeyName()})) {
+            $model->{$model->getKeyName()} = (string) Str::uuid();
+        }
+    });
+}
+
 }

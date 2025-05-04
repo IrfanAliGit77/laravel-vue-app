@@ -27,7 +27,7 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-    public function share(Request $request): array
+    public function share2(Request $request): array
     {
         return [
             ...parent::share($request),
@@ -35,5 +35,19 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
         ];
+    }
+    public function share(Request $request)
+    {
+        return array_merge(parent::share($request), [
+            // Share data ke semua komponen Vue
+            'auth' => [
+                'user' => $request->user(),
+            ],
+            'csrf_token' => csrf_token(),
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error')
+            ]
+        ]);
     }
 }

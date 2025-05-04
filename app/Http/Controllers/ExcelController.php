@@ -13,30 +13,43 @@ use Illuminate\Routing\Controller;
 
 class ExcelController extends Controller
 {
-    public function __construct(){
+    public function __construct()
+    {
         $this->middleware('auth');
     }
 
-    // Start an export job for a given table and selected fields (comma-separated)
+    /**
+     * Memulai job export untuk tabel dan field yang dipilih.
+     *
+     * Data yang diterima:
+     *   - table: "projects", "tasks", atau "comments"
+     *   - fields: string (dipisahkan dengan koma, misalnya "id,name")
+     */
     public function export(Request $request)
     {
-        $table = $request->table;  // "projects", "tasks", or "comments"
-        $fields = explode(',', $request->fields);
+        $table = $request->input('table');
+        $fields = explode(',', $request->input('fields'));
+
         ProcessExcelExport::dispatch($table, $fields, Auth::user()->id);
-        return response()->json(['message' => 'Export process started; you will be notified when finished.']);
+
+        return redirect()->back()->with('success', 'Export process started; you will be notified when finished.');
     }
 
-    // Start an import job for a given table via an Excel file upload
+    /**
+     * Memulai job import untuk tabel tertentu melalui unggahan file Excel.
+     */
     public function import(Request $request)
     {
         $request->validate([
-           'table' => 'required|in:projects,tasks,comments',
-           'file'  => 'required|file|mimes:xlsx,xls'
+            'table' => 'required|in:projects,tasks,comments',
+            'file'  => 'required|file|mimes:xlsx,xls'
         ]);
 
-        $table = $request->table;
+        $table = $request->input('table');
         $file = $request->file('file');
+
         ProcessExcelImport::dispatch($table, $file->getRealPath(), Auth::user()->id);
-        return response()->json(['message' => 'Import process started; you will be notified upon completion.']);
+
+        return redirect()->back()->with('success', 'Import process started; you will be notified upon completion.');
     }
 }

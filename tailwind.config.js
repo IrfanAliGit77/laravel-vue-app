@@ -8,6 +8,7 @@ export default {
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
         './resources/js/**/*.vue',
+        './resources/**/*.js',
     ],
 
     theme: {
@@ -20,3 +21,6 @@ export default {
 
     plugins: [forms],
 };
+
+// tailwind.config.js
+

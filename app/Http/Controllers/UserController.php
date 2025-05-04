@@ -2,33 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use App\Models\User;
 use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Routing\Controller;
 
 class UserController extends Controller
 {
     public function __construct()
     {
         $this->middleware('auth');
-        // This simple check ensures only Administrators access these routes.
+        
         $this->middleware(function ($request, $next) {
-            if (Auth::user()->role->name !== 'Administrator') {
-                return response()->json(['error' => 'Unauthorized'], 403);
+            // Pastikan user memiliki relasi role sebelum mengakses propertinya
+            if (!Auth::user()->role || Auth::user()->role->name !== 'Administrator') {
+                abort(403, 'Unauthorized');
             }
             return $next($request);
         });
     }
+  
 
-    public function index()
+    // Menampilkan halaman User Management dengan data user (paginate) dan list role (untuk pilihan)
+    public function index(Request $request)
     {
         $users = User::with('role')->paginate(10);
-        return response()->json($users);
+        $roles = Role::all();
+
+        return Inertia::render('UserManagement', [
+            'users' => $users,
+            'roles' => $roles,
+            // Jika ingin mengirim flash message, Anda bisa mengambilnya dari session jika diperlukan.
+        ]);
     }
 
+    // Menyimpan user baru
     public function store(Request $request)
     {
         $request->validate([
@@ -38,21 +49,25 @@ class UserController extends Controller
             'role_id'  => 'required|exists:roles,id'
         ]);
 
-        $user = User::create([
+        User::create([
             'name'     => $request->name,
             'email'    => $request->email,
             'password' => Hash::make($request->password),
             'role_id'  => $request->role_id,
         ]);
 
-        return response()->json($user, 201);
+        return redirect()->back()->with('success', 'User created successfully.');
     }
 
+    // Menampilkan detail user (bisa dikembangkan jika Anda ingin halaman detail)
     public function show(User $user)
     {
-        return response()->json($user->load('role'));
+        return Inertia::render('UserManagement/Show', [
+            'user' => $user->load('role'),
+        ]);
     }
 
+    // Mengupdate data user
     public function update(Request $request, User $user)
     {
         $request->validate([
@@ -68,12 +83,14 @@ class UserController extends Controller
         }
 
         $user->update($data);
-        return response()->json($user);
+
+        return redirect()->back()->with('success', 'User updated successfully.');
     }
 
+    // Menghapus user
     public function destroy(User $user)
     {
         $user->delete();
-        return response()->json(null, 204);
+        return redirect()->back()->with('success', 'User deleted successfully.');
     }
 }
